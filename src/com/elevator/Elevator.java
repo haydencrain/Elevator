@@ -11,12 +11,14 @@ public class Elevator {
         IDLE,
     }
 
+    private int id;
     private int floor;
     private ElevatorState state;
     private final ElevatorQueue stops;
     private final HashMap<Integer, HashSet<Integer>> requestsMap;
 
-    public Elevator() {
+    public Elevator(int id) {
+        this.id = id;
         floor = 0;
         state = ElevatorState.IDLE;
         stops = new ElevatorQueue();
@@ -33,16 +35,8 @@ public class Elevator {
 
     public void move() {
         var nextStop = stops.peek();
-        updateState(nextStop);
-        floor += getDirectionToMove();
-        if (floor == nextStop) {
-            // remove from stops
-            var stop = stops.poll();
-            // retrieve list of requests that was recorded for that stop
-            var requests = requestsMap.get(stop);
-            // add them to the queue
-            stops.add(requests);
-        }
+        state = getNextState(nextStop);
+        handleState();
     }
 
     public void addRequest(int source, int destination) {
@@ -61,29 +55,53 @@ public class Elevator {
         requestsMap.put(source, requests);
     }
 
-    private void updateState(Integer nextStop) {
+    private ElevatorState getNextState(Integer nextStop) {
         if (nextStop == null) {
-            state = ElevatorState.IDLE;
-        } else if (floor == nextStop) {
-            state = ElevatorState.SERVING;
-        } else if (floor < nextStop) {
-            state = ElevatorState.MOVING_UP;
-        } else {
-            state = ElevatorState.MOVING_DOWN;
+            return ElevatorState.IDLE;
+        }
+        if (floor == nextStop) {
+            return ElevatorState.SERVING;
+        }
+        if (floor < nextStop) {
+            return ElevatorState.MOVING_UP;
+        }
+        return ElevatorState.MOVING_DOWN;
+    }
+
+    private void handleState() {
+        switch (state) {
+            case MOVING_UP:
+                moveUp();
+                break;
+            case MOVING_DOWN:
+                moveDown();
+                break;
+            case SERVING:
+                servePassengers();
+            case IDLE:
+            default:
+                break;
         }
     }
 
-    private int getDirectionToMove() {
-        switch (state) {
-            case MOVING_UP:
-                return 1;
-            case MOVING_DOWN:
-                return -1;
-            case IDLE:
-            case SERVING:
-            default:
-                return 0;
-        }
+    private void moveUp() {
+        floor += 1;
+        System.out.println("Elevator " + id + " moving up to floor " + floor);
+    }
+
+    private void moveDown() {
+        floor -= 1;
+        System.out.println("Elevator " + id + " moving down to floor " + floor);
+    }
+
+    private void servePassengers() {
+        System.out.println("Elevator " + id + " has stopped at floor " + floor);
+        // remove current floor from stops
+        var stop = stops.poll();
+        // retrieve list of requests that was recorded for that stop
+        var requests = requestsMap.get(stop);
+        // add them to the queue
+        stops.add(requests);
     }
 }
 
