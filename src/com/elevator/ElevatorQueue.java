@@ -1,4 +1,4 @@
-package com.dos.elevator;
+package com.elevator;
 
 import java.util.LinkedList;
 
