@@ -2,6 +2,7 @@ package com.elevator;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.UUID;
 
 public class Elevator {
     enum ElevatorState {
@@ -11,13 +12,16 @@ public class Elevator {
         IDLE,
     }
 
-    private int id;
+    private final String id;
     private int floor;
     private ElevatorState state;
     private final ElevatorQueue stops;
     private final HashMap<Integer, HashSet<Integer>> requestsMap;
 
-    public Elevator(int id) {
+    public Elevator() {
+        this(UUID.randomUUID().toString());
+    }
+    public Elevator(String id) {
         this.id = id;
         floor = 0;
         state = ElevatorState.IDLE;
@@ -100,6 +104,8 @@ public class Elevator {
         var stop = stops.poll();
         // retrieve list of requests that was recorded for that stop
         var requests = requestsMap.get(stop);
+        // remove stop from map
+        requestsMap.remove(stop);
         // add them to the queue
         stops.add(requests);
     }
